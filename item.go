@@ -1,6 +1,10 @@
 package libsecret
 
-import "github.com/godbus/dbus/v5"
+import (
+	"time"
+
+	"github.com/godbus/dbus/v5"
+)
 
 type Item struct {
 	conn *dbus.Conn
@@ -36,6 +40,42 @@ func (item *Item) Locked() (bool, error) {
 	}
 
 	return val.Value().(bool), nil
+}
+
+// READ Uint64 Created;
+func (item *Item) Created() (time.Time, error) {
+	val, err := item.dbus.GetProperty("org.freedesktop.Secret.Item.Created")
+	if err != nil {
+		return time.Time{}, err
+	}
+	v := val.Value().(uint64)
+	tm := time.Unix(int64(v), 0)
+
+	return tm, nil
+}
+
+// READ Uint64 Modified;
+func (item *Item) Modified() (time.Time, error) {
+	val, err := item.dbus.GetProperty("org.freedesktop.Secret.Item.Modified")
+	if err != nil {
+		return time.Time{}, err
+	}
+	v := val.Value().(uint64)
+	tm := time.Unix(int64(v), 0)
+
+	return tm, nil
+}
+
+// READWRITE Dict<String,String> Attributes;
+func (item *Item) Attributes() (map[string]string, error) {
+	attributes := make(map[string]string)
+	val, err := item.dbus.GetProperty("org.freedesktop.Secret.Item.Attributes")
+	if err != nil {
+		return attributes, err
+	}
+	attributes = val.Value().(map[string]string)
+
+	return attributes, nil
 }
 
 // GetSecret (IN ObjectPath session, OUT Secret secret);
